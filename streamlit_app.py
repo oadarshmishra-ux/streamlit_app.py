@@ -46,8 +46,9 @@ def extract_keywords(text, num_keywords=15):
     return [w for w, _ in sorted_words[:num_keywords]]
 
 def match_keywords(resume_keywords, jd_keywords):
-    resume_set = set([w.lower() for w in resume_keywords])
-    jd_set = set([w.lower() for w in jd_keywords])
+    """Compare resume keywords with job description keywords using synonym mapping."""
+    resume_set = normalize_keywords(resume_keywords)
+    jd_set = normalize_keywords(jd_keywords)
     matched = resume_set.intersection(jd_set)
     score = (len(matched) / len(jd_set)) * 100 if jd_set else 0
     return score, matched
