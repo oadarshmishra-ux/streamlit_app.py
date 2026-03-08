@@ -32,12 +32,14 @@ def clean_text(text):
     return text
 
 def extract_keywords(text, num_keywords=10):
-    """Extract keywords using Hugging Face zero-shot classification pipeline."""
-    # Using a simple summarization pipeline for demonstration
-    summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
-    summary = summarizer(text, max_length=60, min_length=20, do_sample=False)
-    keywords = summary[0]['summary_text'].split()
-    return keywords[:num_keywords]
+    """Simple frequency-based keyword extraction (stable on Streamlit Cloud)."""
+    words = text.split()
+    freq = {}
+    for w in words:
+        if len(w) > 3:  # ignore very short words
+            freq[w] = freq.get(w, 0) + 1
+    sorted_words = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+    return [w for w, _ in sorted_words[:num_keywords]]
 
 def match_keywords(resume_keywords, jd_keywords):
     """Compare resume keywords with job description keywords."""
