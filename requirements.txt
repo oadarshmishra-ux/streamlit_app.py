@@ -1,7 +1,5 @@
 streamlit
-transformers==4.30.2
 PyPDF2
-torch
 sentencepiece
 protobuf
 scipy
