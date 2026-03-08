@@ -31,20 +31,24 @@ def clean_text(text):
     text = re.sub(r'[^a-zA-Z\s]', '', text)
     return text
 
-def extract_keywords(text, num_keywords=10):
-    """Simple frequency-based keyword extraction (stable on Streamlit Cloud)."""
+def extract_keywords(text, num_keywords=15):
+    """Frequency-based keyword extraction that preserves tech terms."""
+    # Keep words like C++, SQL, REST by adjusting regex
+    text = re.sub(r'[^a-zA-Z0-9#+\s]', '', text)
     words = text.split()
     freq = {}
     for w in words:
-        if len(w) > 3:  # ignore very short words
-            freq[w] = freq.get(w, 0) + 1
+        if len(w) > 2:  # ignore very short words
+            freq[w.lower()] = freq.get(w.lower(), 0) + 1
     sorted_words = sorted(freq.items(), key=lambda x: x[1], reverse=True)
     return [w for w, _ in sorted_words[:num_keywords]]
 
 def match_keywords(resume_keywords, jd_keywords):
     """Compare resume keywords with job description keywords."""
-    matched = set(resume_keywords).intersection(set(jd_keywords))
-    score = (len(matched) / len(jd_keywords)) * 100 if jd_keywords else 0
+    resume_set = set([w.lower() for w in resume_keywords])
+    jd_set = set([w.lower() for w in jd_keywords])
+    matched = resume_set.intersection(jd_set)
+    score = (len(matched) / len(jd_set)) * 100 if jd_set else 0
     return score, matched
 
 def generate_feedback(score, matched, jd_keywords):
