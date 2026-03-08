@@ -34,7 +34,7 @@ SKILL_DICTIONARY = {
     "databases": ["sql","mysql","postgresql","mongodb","sqlite"],
     "frameworks": ["spring boot","django","node.js","rest","api"],
     "tools": ["git","github","vs code","eclipse"],
-    "concepts": ["oop","problem solving","debugging","testing","maintenance","designing","coding"]
+    "concepts": ["oop","problem solving","debugging","testing","maintenance"]
 }
 
 SYNONYMS = {
@@ -51,7 +51,6 @@ SYNONYMS = {
 def extract_skills(text):
     """Extract skills from resume/job description using curated dictionary."""
     text = re.sub(r'[^a-zA-Z0-9#+\s]', ' ', text)
-    words = text.lower().split()
     found = set()
     for category, skills in SKILL_DICTIONARY.items():
         for skill in skills:
@@ -75,8 +74,9 @@ def match_keywords(resume_keywords, jd_keywords):
     resume_set = normalize_keywords(resume_keywords)
     jd_set = normalize_keywords(jd_keywords)
     matched = resume_set.intersection(jd_set)
+    missing = jd_set - matched
     score = (len(matched) / len(jd_set)) * 100 if jd_set else 0
-    return score, matched, jd_set - matched
+    return score, matched, missing
 
 def generate_feedback(score, matched, missing):
     """Generate recruiter-style feedback based on keyword match."""
@@ -91,38 +91,36 @@ def generate_feedback(score, matched, missing):
         feedback += "Low alignment. Resume needs significant improvement."
     return feedback
 
-
 def generate_suggestions(score, matched, missing):
-    """Provide clear, concise suggestions to improve ATS score."""
+    """Provide clear, precise suggestions to improve ATS score."""
     suggestions = []
 
     # General advice based on score
     if score < 40:
-        suggestions.append("Add more job-specific keywords.")
-        suggestions.append("List technical skills clearly (Python, SQL, Java).")
-        suggestions.append("Show projects that use required skills.")
+        suggestions.append("Add more job-specific keywords in summary and skills.")
+        suggestions.append("Show projects that use required skills (Java, SQL, Python).")
     elif score < 70:
-        suggestions.append("Include missing skills where relevant.")
-        suggestions.append("Match resume summary to job description.")
-        suggestions.append("Use consistent terms (e.g., REST API).")
+        suggestions.append("Include missing skills explicitly in Technical Skills section.")
+        suggestions.append("Tailor your summary to match JD phrasing (designing, coding, testing).")
     else:
-        suggestions.append("Resume aligns well. Focus on formatting.")
-        suggestions.append("Add measurable results (e.g., improved speed by 30%).")
+        suggestions.append("Resume aligns well. Focus on formatting and measurable results.")
 
     # Category-specific advice
     if missing:
         web_missing = [m for m in missing if m in ["html","css","javascript"]]
         if web_missing:
-            suggestions.append(f"Add web tech: {', '.join(web_missing)}")
+            suggestions.append(f"Add Web Technologies: {', '.join(web_missing)} under Technical Skills.")
         backend_missing = [m for m in missing if m in ["php","django","spring boot","rest"]]
         if backend_missing:
-            suggestions.append(f"Learn backend frameworks: {', '.join(backend_missing)}")
-        testing_missing = [m for m in missing if m in ["testing","maintenance","designing","coding"]]
+            suggestions.append(f"Add Backend Frameworks: {', '.join(backend_missing)}.")
+        testing_missing = [m for m in missing if m in ["testing","maintenance"]]
         if testing_missing:
-            suggestions.append(f"Highlight testing/maintenance: {', '.join(testing_missing)}")
+            suggestions.append(f"Highlight Testing/Maintenance in project descriptions: {', '.join(testing_missing)}.")
+        soft_missing = [m for m in missing if m in ["problem solving","communication"]]
+        if soft_missing:
+            suggestions.append(f"Emphasize Soft Skills: {', '.join(soft_missing)} in summary/achievements.")
 
     return suggestions
-
 
 # ==============================
 # 3. Streamlit UI
