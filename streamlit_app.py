@@ -26,26 +26,16 @@ def extract_text_from_pdf(uploaded_file):
 
 def clean_text(text):
     """Basic text cleaning for NLP processing."""
-    return text.lower()  # keep symbols like C++, SQL intact
+    return text.lower()
 
-STOPWORDS = {
-    "and","the","with","for","are","this","that","have","has","will",
-    "role","looking","strong","foundation","graduate","fresher"
+# Curated skill dictionary for fresher software developer roles
+SKILL_DICTIONARY = {
+    "languages": ["java","python","c++","cpp","php","javascript","html","css"],
+    "databases": ["sql","mysql","postgresql","mongodb","sqlite"],
+    "frameworks": ["spring boot","django","node.js","rest","api"],
+    "tools": ["git","github","vs code","eclipse"],
+    "concepts": ["oop","problem solving","debugging","testing","maintenance","designing","coding"]
 }
-
-def weighted_extract_keywords(text, num_keywords=25):
-    """Keyword extraction with stopword removal and weighted scoring."""
-    text = re.sub(r'[^a-zA-Z0-9#+\s]', '', text)  # keep C++, SQL, REST
-    words = text.split()
-    freq = {}
-    for w in words:
-        w = w.lower()
-        if len(w) > 2 and w not in STOPWORDS:
-            # Weight technical skills higher if 'skills' section is present
-            weight = 2 if "skills" in text.lower() else 1
-            freq[w] = freq.get(w, 0) + weight
-    sorted_words = sorted(freq.items(), key=lambda x: x[1], reverse=True)
-    return [w for w, _ in sorted_words[:num_keywords]]
 
 SYNONYMS = {
     "sql": ["mysql","postgresql","sqlite"],
@@ -53,8 +43,21 @@ SYNONYMS = {
     "c++": ["cpp"],
     "javascript": ["js","node","node.js"],
     "html": ["html5"],
-    "css": ["css3"]
+    "css": ["css3"],
+    "django": ["python web framework"],
+    "php": ["php7","php8"]
 }
+
+def extract_skills(text):
+    """Extract skills from resume/job description using curated dictionary."""
+    text = re.sub(r'[^a-zA-Z0-9#+\s]', ' ', text)
+    words = text.lower().split()
+    found = set()
+    for category, skills in SKILL_DICTIONARY.items():
+        for skill in skills:
+            if skill in text:
+                found.add(skill)
+    return list(found)
 
 def normalize_keywords(keywords):
     """Normalize keywords with synonym mapping."""
@@ -73,11 +76,10 @@ def match_keywords(resume_keywords, jd_keywords):
     jd_set = normalize_keywords(jd_keywords)
     matched = resume_set.intersection(jd_set)
     score = (len(matched) / len(jd_set)) * 100 if jd_set else 0
-    return score, matched
+    return score, matched, jd_set - matched
 
-def generate_feedback(score, matched, jd_keywords):
+def generate_feedback(score, matched, missing):
     """Generate recruiter-style feedback based on keyword match."""
-    missing = set(jd_keywords) - matched
     feedback = f"Match Score: {score:.2f}%\n\n"
     feedback += f"✅ Matched Skills: {', '.join(matched) if matched else 'None'}\n"
     feedback += f"❌ Missing Skills: {', '.join(missing) if missing else 'None'}\n\n"
@@ -89,9 +91,8 @@ def generate_feedback(score, matched, jd_keywords):
         feedback += "Low alignment. Resume needs significant improvement to match job requirements."
     return feedback
 
-def generate_suggestions(score, matched, jd_keywords):
+def generate_suggestions(score, matched, missing):
     """Provide actionable suggestions to improve ATS score."""
-    missing = set(jd_keywords) - matched
     suggestions = []
 
     if score < 40:
@@ -107,13 +108,15 @@ def generate_suggestions(score, matched, jd_keywords):
         suggestions.append("Add measurable achievements (e.g., 'Improved query speed by 30%').")
 
     if missing:
-        # Group missing skills into categories
         web_missing = [m for m in missing if m in ["html","css","javascript"]]
         if web_missing:
-            suggestions.append(f"Consider adding web technologies: {', '.join(web_missing)}")
-        backend_missing = [m for m in missing if m in ["php","django","spring","rest"]]
+            suggestions.append(f"Add web technologies: {', '.join(web_missing)}")
+        backend_missing = [m for m in missing if m in ["php","django","spring boot","rest"]]
         if backend_missing:
-            suggestions.append(f"Consider gaining backend framework experience: {', '.join(backend_missing)}")
+            suggestions.append(f"Gain backend framework experience: {', '.join(backend_missing)}")
+        testing_missing = [m for m in missing if m in ["testing","maintenance","designing","coding"]]
+        if testing_missing:
+            suggestions.append(f"Highlight testing/maintenance experience: {', '.join(testing_missing)}")
         suggestions.append(f"Overall missing skills: {', '.join(missing)}")
 
     return suggestions
@@ -134,15 +137,15 @@ def main():
         resume_text = clean_text(resume_text)
         jd_text = clean_text(jd_text)
 
-        # Extract keywords
-        resume_keywords = weighted_extract_keywords(resume_text)
-        jd_keywords = weighted_extract_keywords(jd_text)
+        # Extract skills
+        resume_keywords = extract_skills(resume_text)
+        jd_keywords = extract_skills(jd_text)
 
         # Match & score
-        score, matched = match_keywords(resume_keywords, jd_keywords)
+        score, matched, missing = match_keywords(resume_keywords, jd_keywords)
 
         # Feedback
-        feedback = generate_feedback(score, matched, jd_keywords)
+        feedback = generate_feedback(score, matched, missing)
 
         # Display results
         st.subheader("📊 Analysis Results")
@@ -154,7 +157,7 @@ def main():
 
         # Suggestions
         st.subheader("💡 Suggestions to Improve ATS Score")
-        suggestions = generate_suggestions(score, matched, jd_keywords)
+        suggestions = generate_suggestions(score, matched, missing)
         for s in suggestions:
             st.write(f"- {s}")
 
