@@ -28,7 +28,7 @@ def clean_text(text):
     """Basic text cleaning for NLP processing."""
     return text.lower()
 
-# Curated skill dictionary for fresher software developer roles
+# Curated skill dictionary
 SKILL_DICTIONARY = {
     "languages": ["java","python","c++","cpp","php","javascript","html","css"],
     "databases": ["sql","mysql","postgresql","mongodb","sqlite"],
@@ -92,16 +92,16 @@ def generate_feedback(score, matched, missing):
     return feedback
 
 def generate_suggestions(score, matched, missing):
-    """Provide clear, precise suggestions to improve ATS score."""
+    """Provide clear, recruiter-level suggestions to improve ATS score."""
     suggestions = []
 
     # General advice based on score
     if score < 40:
-        suggestions.append("Add more job-specific keywords in summary and skills.")
-        suggestions.append("Show projects that use required skills (Java, SQL, Python).")
+        suggestions.append("Expand Technical Skills section with missing technologies.")
+        suggestions.append("Add detailed project descriptions showing use of required skills.")
     elif score < 70:
-        suggestions.append("Include missing skills explicitly in Technical Skills section.")
-        suggestions.append("Tailor your summary to match JD phrasing (designing, coding, testing).")
+        suggestions.append("Explicitly list missing skills in Technical Skills.")
+        suggestions.append("Rewrite summary to mirror JD phrasing (designing, coding, testing).")
     else:
         suggestions.append("Resume aligns well. Focus on formatting and measurable results.")
 
@@ -113,6 +113,9 @@ def generate_suggestions(score, matched, missing):
         backend_missing = [m for m in missing if m in ["php","django","spring boot","rest"]]
         if backend_missing:
             suggestions.append(f"Add Backend Frameworks: {', '.join(backend_missing)}.")
+        db_missing = [m for m in missing if m in ["sql","mysql","postgresql"]]
+        if db_missing:
+            suggestions.append(f"Emphasize Database Skills: {', '.join(db_missing)}.")
         testing_missing = [m for m in missing if m in ["testing","maintenance"]]
         if testing_missing:
             suggestions.append(f"Highlight Testing/Maintenance in project descriptions: {', '.join(testing_missing)}.")
