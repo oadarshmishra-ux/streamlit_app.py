@@ -81,45 +81,48 @@ def match_keywords(resume_keywords, jd_keywords):
 def generate_feedback(score, matched, missing):
     """Generate recruiter-style feedback based on keyword match."""
     feedback = f"Match Score: {score:.2f}%\n\n"
-    feedback += f"✅ Matched Skills: {', '.join(matched) if matched else 'None'}\n"
-    feedback += f"❌ Missing Skills: {', '.join(missing) if missing else 'None'}\n\n"
+    feedback += f"✅ Matched Skills: {', '.join(sorted(matched)) if matched else 'None'}\n"
+    feedback += f"❌ Missing Skills: {', '.join(sorted(missing)) if missing else 'None'}\n\n"
     if score >= 70:
-        feedback += "Strong resume alignment with job description. Ready for recruiter review!"
+        feedback += "Strong alignment with the job description."
     elif score >= 40:
-        feedback += "Moderate alignment. Consider adding missing skills to improve ATS score."
+        feedback += "Moderate alignment. Add missing skills to improve ATS score."
     else:
-        feedback += "Low alignment. Resume needs significant improvement to match job requirements."
+        feedback += "Low alignment. Resume needs significant improvement."
     return feedback
 
+
 def generate_suggestions(score, matched, missing):
-    """Provide actionable suggestions to improve ATS score."""
+    """Provide clear, concise suggestions to improve ATS score."""
     suggestions = []
 
+    # General advice based on score
     if score < 40:
-        suggestions.append("Revise your resume to include more job-specific keywords.")
-        suggestions.append("Highlight technical skills explicitly (e.g., Python, SQL, Java).")
-        suggestions.append("Add project details that demonstrate required skills.")
+        suggestions.append("Add more job-specific keywords.")
+        suggestions.append("List technical skills clearly (Python, SQL, Java).")
+        suggestions.append("Show projects that use required skills.")
     elif score < 70:
-        suggestions.append("Incorporate missing skills into your resume where relevant.")
-        suggestions.append("Tailor your resume summary to match the job description.")
-        suggestions.append("Use consistent terminology (e.g., 'REST API' instead of 'web services').")
+        suggestions.append("Include missing skills where relevant.")
+        suggestions.append("Match resume summary to job description.")
+        suggestions.append("Use consistent terms (e.g., REST API).")
     else:
-        suggestions.append("Your resume aligns well. Focus on formatting and clarity.")
-        suggestions.append("Add measurable achievements (e.g., 'Improved query speed by 30%').")
+        suggestions.append("Resume aligns well. Focus on formatting.")
+        suggestions.append("Add measurable results (e.g., improved speed by 30%).")
 
+    # Category-specific advice
     if missing:
         web_missing = [m for m in missing if m in ["html","css","javascript"]]
         if web_missing:
-            suggestions.append(f"Add web technologies: {', '.join(web_missing)}")
+            suggestions.append(f"Add web tech: {', '.join(web_missing)}")
         backend_missing = [m for m in missing if m in ["php","django","spring boot","rest"]]
         if backend_missing:
-            suggestions.append(f"Gain backend framework experience: {', '.join(backend_missing)}")
+            suggestions.append(f"Learn backend frameworks: {', '.join(backend_missing)}")
         testing_missing = [m for m in missing if m in ["testing","maintenance","designing","coding"]]
         if testing_missing:
-            suggestions.append(f"Highlight testing/maintenance experience: {', '.join(testing_missing)}")
-        suggestions.append(f"Overall missing skills: {', '.join(missing)}")
+            suggestions.append(f"Highlight testing/maintenance: {', '.join(testing_missing)}")
 
     return suggestions
+
 
 # ==============================
 # 3. Streamlit UI
