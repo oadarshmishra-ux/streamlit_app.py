@@ -61,6 +61,28 @@ def generate_feedback(score, matched, jd_keywords):
         feedback += "Low alignment. Resume needs significant improvement to match job requirements."
     return feedback
 
+def generate_suggestions(score, matched, jd_keywords):
+    """Provide actionable suggestions to improve ATS score."""
+    missing = set(jd_keywords) - matched
+    suggestions = []
+
+    if score < 40:
+        suggestions.append("Revise your resume to include more job-specific keywords.")
+        suggestions.append("Highlight technical skills explicitly (e.g., Python, SQL, Java).")
+        suggestions.append("Add project details that demonstrate required skills.")
+    elif score < 70:
+        suggestions.append("Incorporate missing skills into your resume where relevant.")
+        suggestions.append("Tailor your resume summary to match the job description.")
+        suggestions.append("Use consistent terminology (e.g., 'REST API' instead of 'web services').")
+    else:
+        suggestions.append("Your resume aligns well. Focus on formatting and clarity.")
+        suggestions.append("Add measurable achievements (e.g., 'Improved query speed by 30%').")
+
+    if missing:
+        suggestions.append(f"Consider gaining or showcasing experience in: {', '.join(missing)}")
+
+    return suggestions
+
 # ==============================
 # 3. Streamlit UI
 # ==============================
