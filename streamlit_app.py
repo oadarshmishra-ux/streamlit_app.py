@@ -31,25 +31,42 @@ def clean_text(text):
     text = re.sub(r'[^a-zA-Z\s]', '', text)
     return text
 
+STOPWORDS = {"and","the","with","for","are","this","that","have","has","will","role","looking"}
+
 def extract_keywords(text, num_keywords=15):
-    """Frequency-based keyword extraction that preserves tech terms."""
-    # Keep words like C++, SQL, REST by adjusting regex
-    text = re.sub(r'[^a-zA-Z0-9#+\s]', '', text)
+    """Improved keyword extraction with stopword removal and tech term preservation."""
+    text = re.sub(r'[^a-zA-Z0-9#+\s]', '', text)  # keep C++, SQL, REST
     words = text.split()
     freq = {}
     for w in words:
-        if len(w) > 2:  # ignore very short words
-            freq[w.lower()] = freq.get(w.lower(), 0) + 1
+        w = w.lower()
+        if len(w) > 2 and w not in STOPWORDS:
+            freq[w] = freq.get(w, 0) + 1
     sorted_words = sorted(freq.items(), key=lambda x: x[1], reverse=True)
     return [w for w, _ in sorted_words[:num_keywords]]
 
 def match_keywords(resume_keywords, jd_keywords):
-    """Compare resume keywords with job description keywords."""
     resume_set = set([w.lower() for w in resume_keywords])
     jd_set = set([w.lower() for w in jd_keywords])
     matched = resume_set.intersection(jd_set)
     score = (len(matched) / len(jd_set)) * 100 if jd_set else 0
     return score, matched
+
+SYNONYMS = {
+    "sql": ["mysql","postgresql"],
+    "rest": ["api","web services"],
+    "c++": ["cpp"]
+}
+
+def normalize_keywords(keywords):
+    normalized = set()
+    for k in keywords:
+        k = k.lower()
+        normalized.add(k)
+        for base, variants in SYNONYMS.items():
+            if k in variants:
+                normalized.add(base)
+    return normalized
 
 def generate_feedback(score, matched, jd_keywords):
     """Generate recruiter-style feedback based on keyword match."""
