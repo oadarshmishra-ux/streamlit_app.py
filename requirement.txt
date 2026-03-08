@@ -1,3 +1,0 @@
-streamlit
-transformers
-PyPDF2
